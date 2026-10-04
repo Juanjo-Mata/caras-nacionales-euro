@@ -309,7 +309,7 @@ document.getElementById("inputArchivo").addEventListener("change", (e) => {
       guardar(); render();
       alert(`Se importaron ${nuevas.length} monedas.`);
     } else {
-      alert("No se encontraron filas válidas. Revisa que el CSV tenga columnas pais, anio, imagen, notas.");
+      alert("No se encontraron filas válidas. Revisa que el archivo tenga, al menos, columnas llamadas pais y anio en la primera fila.");
     }
   };
   lector.readAsText(archivo, "utf-8");
@@ -319,7 +319,9 @@ document.getElementById("inputArchivo").addEventListener("change", (e) => {
 function parsearCSV(texto){
   const lineas = texto.replace(/^\ufeff/,"").split(/\r?\n/).filter(l => l.trim() !== "");
   if(lineas.length < 2) return [];
-  const cabecera = dividirLineaCSV(lineas[0]).map(c => c.trim().toLowerCase());
+  const primeraLinea = lineas[0];
+  const separador = (primeraLinea.match(/;/g) || []).length > (primeraLinea.match(/,/g) || []).length ? ";" : ",";
+  const cabecera = dividirLineaCSV(lineas[0], separador).map(c => c.trim().toLowerCase());
   const idxPais = cabecera.indexOf("pais") !== -1 ? cabecera.indexOf("pais") : cabecera.indexOf("país");
   const idxAnio = cabecera.indexOf("anio") !== -1 ? cabecera.indexOf("anio") : cabecera.indexOf("año");
   const idxImagen = cabecera.indexOf("imagen");
@@ -335,7 +337,7 @@ function parsearCSV(texto){
 
   const resultado = [];
   for(let i=1; i<lineas.length; i++){
-    const campos = dividirLineaCSV(lineas[i]);
+    const campos = dividirLineaCSV(lineas[i], separador);
     const pais = idxPais !== -1 ? campos[idxPais] : "";
     const anio = idxAnio !== -1 ? parseInt(campos[idxAnio], 10) : NaN;
     if(!pais || !anio) continue;
@@ -354,7 +356,8 @@ function parsearCSV(texto){
   return resultado;
 }
 
-function dividirLineaCSV(linea){
+function dividirLineaCSV(linea, separador){
+  separador = separador || ",";
   const campos = [];
   let actual = "", dentroComillas = false;
   for(let i=0; i<linea.length; i++){
@@ -362,7 +365,7 @@ function dividirLineaCSV(linea){
     if(c === '"'){
       if(dentroComillas && linea[i+1] === '"'){ actual += '"'; i++; }
       else dentroComillas = !dentroComillas;
-    } else if(c === "," && !dentroComillas){
+    } else if(c === separador && !dentroComillas){
       campos.push(actual); actual = "";
     } else {
       actual += c;
