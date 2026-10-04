@@ -291,7 +291,7 @@ document.getElementById("btnExportar").addEventListener("click", () => {
   const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "inventario-monedas.csv";
+  a.download = "caras-nacionales-euro.csv";
   a.click();
 });
 
@@ -382,6 +382,23 @@ function dividirLineaCSV(linea, separador){
 }
 
 render();
+
+// Al abrir la página, intenta cargar inventario-monedas.csv desde el propio repositorio,
+// para que los datos se vean igual desde cualquier dispositivo, no solo desde este navegador.
+fetch("caras-nacionales-euro.csv")
+  .then(r => r.ok ? r.arrayBuffer() : null)
+  .then(buffer => {
+    if(!buffer) return;
+    let texto = new TextDecoder("utf-8").decode(buffer);
+    if(texto.includes("\ufffd")) texto = new TextDecoder("windows-1252").decode(buffer);
+    const delRepo = parsearCSV(texto);
+    if(delRepo.length){
+      monedas = delRepo;
+      guardar();
+      render();
+    }
+  })
+  .catch(() => { /* No hay CSV publicado todavía: no pasa nada, se queda con lo que ya hubiera. */ });
 </script>
 </body>
 </html>
