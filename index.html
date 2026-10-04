@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inventario de monedas de 2 euros conmemorativas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f1e8; --panel:#ffffff; --ink:#2b2620; --mute:#7a6f60;
+  --line:#e3dccb; --gold:#a9812f; --gold-deep:#7d5f22; --copper:#b0603f;
+  --focus:#2b2620;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1812;--panel:#26221a;--ink:#ece6d8;--mute:#a89b84;--line:#3a3427}}
+:root[data-theme="dark"]{--bg:#1c1812;--panel:#26221a;--ink:#ece6d8;--mute:#a89b84;--line:#3a3427}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.5}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0}
+header{max-width:64rem;margin:0 auto;padding:2.2rem 1.5rem 1rem}
+header h1{font-size:1.9rem;letter-spacing:.01em}
+header p{color:var(--mute);margin:.4rem 0 0;max-width:46rem}
+main{max-width:64rem;margin:0 auto;padding:0 1.5rem 4rem}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:.7rem;align-items:end;margin:1.4rem 0 1.6rem;padding:1.1rem;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.field{display:flex;flex-direction:column;gap:.3rem}
+.field label{font-size:.78rem;color:var(--mute)}
+.field input,.field select{font-family:inherit;font-size:.92rem;padding:.5rem .6rem;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);min-width:9rem}
+.field input:focus,.field select:focus,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.spacer{flex:1}
+button{font-family:inherit;font-size:.9rem;padding:.55rem 1rem;border-radius:6px;border:1px solid var(--gold-deep);background:var(--gold);color:#fff;cursor:pointer}
+button:hover{background:var(--gold-deep)}
+button.secondary{background:var(--panel);color:var(--ink);border-color:var(--line)}
+button.secondary:hover{background:var(--bg)}
+.count{color:var(--mute);font-size:.85rem;margin:0 0 .8rem}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(15.5rem,1fr));gap:1rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.card .thumb{aspect-ratio:1/1;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card .thumb img{width:100%;height:100%;object-fit:cover}
+.card .thumb .placeholder{font-family:'Fraunces',serif;font-size:2.4rem;color:var(--copper);opacity:.55}
+.card .body{padding:.85rem .95rem 1rem;display:flex;flex-direction:column;gap:.25rem;flex:1}
+.card .country{font-family:'Fraunces',serif;font-size:1.08rem}
+.card .year{color:var(--gold-deep);font-weight:600;font-size:.9rem}
+.card .notes{color:var(--mute);font-size:.85rem;margin-top:.3rem;flex:1}
+.card .actions{display:flex;gap:.5rem;margin-top:.7rem}
+.card .actions button{flex:1;padding:.4rem .5rem;font-size:.8rem}
+
+.empty{border:1px dashed var(--line);border-radius:10px;padding:3rem 1.5rem;text-align:center;color:var(--mute)}
+.empty strong{display:block;color:var(--ink);font-family:'Fraunces',serif;font-size:1.15rem;margin-bottom:.4rem}
+
+dialog{border:none;border-radius:12px;padding:0;max-width:30rem;width:92vw;box-shadow:0 20px 50px rgba(0,0,0,.25);background:var(--panel);color:var(--ink)}
+dialog::backdrop{background:rgba(30,26,20,.45)}
+.dlg-inner{padding:1.4rem 1.5rem}
+.dlg-inner h2{font-size:1.25rem;margin-bottom:1rem}
+.dlg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.dlg-grid .full{grid-column:1/-1}
+.dlg-grid label{display:block;font-size:.78rem;color:var(--mute);margin-bottom:.25rem}
+.dlg-grid input,.dlg-grid textarea{width:100%;font-family:inherit;font-size:.92rem;padding:.5rem .6rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.dlg-grid textarea{resize:vertical;min-height:4rem}
+.dlg-actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.3rem}
+
+.hint{font-size:.78rem;color:var(--mute);margin-top:1.6rem;line-height:1.6}
+@media (max-width:26rem){.dlg-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>Inventario de monedas de 2 euros conmemorativas</h1>
+<p>Añade, ordena y filtra tu colección por país o por año. Los datos se guardan en este navegador; puedes importar o exportar un CSV en cualquier momento.</p>
+</header>
+
+<main>
+<div class="toolbar">
+  <div class="field">
+    <label for="buscar">Buscar</label>
+    <input id="buscar" type="text" placeholder="País, año, observaciones...">
+  </div>
+  <div class="field">
+    <label for="orden">Ordenar por</label>
+    <select id="orden">
+      <option value="pais-asc">País (A a Z)</option>
+      <option value="anio-desc">Año (más reciente)</option>
+      <option value="anio-asc">Año (más antiguo)</option>
+    </select>
+  </div>
+  <div class="spacer"></div>
+  <button class="secondary" id="btnImportar">Importar CSV</button>
+  <button class="secondary" id="btnExportar">Exportar CSV</button>
+  <button id="btnNueva">Añadir moneda</button>
+  <input type="file" id="inputArchivo" accept=".csv" hidden>
+</div>
+
+<p class="count" id="contador"></p>
+<div id="contenedor"></div>
+
+<p class="hint">Consejo: exporta el CSV de vez en cuando como copia de seguridad, y súbelo también a tu repositorio de GitHub. Si abres esta página en otro ordenador o borras el historial del navegador, los datos guardados aquí no viajan contigo a menos que importes ese archivo.</p>
+</main>
+
+<dialog id="dialogo">
+  <form method="dialog" class="dlg-inner" id="formMoneda">
+    <h2 id="dlgTitulo">Añadir moneda</h2>
+    <div class="dlg-grid">
+      <div class="full">
+        <label for="campoPais">País</label>
+        <input id="campoPais" required>
+      </div>
+      <div>
+        <label for="campoAnio">Año</label>
+        <input id="campoAnio" type="number" min="1999" max="2100" required>
+      </div>
+      <div>
+        <label for="campoImagen">URL de la imagen</label>
+        <input id="campoImagen" type="url" placeholder="https://...">
+      </div>
+      <div>
+        <label for="campoFecha">Fecha de emisión</label>
+        <input id="campoFecha" type="text" placeholder="ej. marzo 2015">
+      </div>
+      <div>
+        <label for="campoTirada">Tirada</label>
+        <input id="campoTirada" type="text" placeholder="ej. 5.000.000">
+      </div>
+      <div class="full">
+        <label for="campoMotivo">Motivo</label>
+        <input id="campoMotivo" type="text" placeholder="ej. 30 aniversario del Erasmus">
+      </div>
+      <div class="full">
+        <label for="campoDescripcion">Descripción de la moneda</label>
+        <textarea id="campoDescripcion" placeholder="Motivo conmemorativo representado..."></textarea>
+      </div>
+      <div class="full">
+        <label for="campoNotas">Observaciones</label>
+        <textarea id="campoNotas" placeholder="Estado, procedencia, anotaciones propias..."></textarea>
+      </div>
+    </div>
+    <div class="dlg-actions">
+      <button type="button" class="secondary" id="btnCancelar">Cancelar</button>
+      <button type="submit" id="btnGuardar">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const CLAVE = "inventario-monedas-2e";
+let monedas = cargar();
+let editandoId = null;
+
+function cargar(){
+  try{ return JSON.parse(localStorage.getItem(CLAVE)) || []; }
+  catch(e){ return []; }
+}
+function guardar(){ try{ localStorage.setItem(CLAVE, JSON.stringify(monedas)); }catch(e){} }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+const contenedor = document.getElementById("contenedor");
+const contador = document.getElementById("contador");
+const buscar = document.getElementById("buscar");
+const orden = document.getElementById("orden");
+const dialogo = document.getElementById("dialogo");
+const form = document.getElementById("formMoneda");
+
+function render(){
+  const texto = buscar.value.trim().toLowerCase();
+  let lista = monedas.filter(m =>
+    !texto ||
+    m.pais.toLowerCase().includes(texto) ||
+    String(m.anio).includes(texto) ||
+    (m.notas || "").toLowerCase().includes(texto)
+  );
+
+  const criterio = orden.value;
+  lista.sort((a,b) => {
+    if(criterio === "pais-asc") return a.pais.localeCompare(b.pais, "es");
+    if(criterio === "anio-desc") return b.anio - a.anio;
+    if(criterio === "anio-asc") return a.anio - b.anio;
+    return 0;
+  });
+
+  contador.textContent = monedas.length === 0
+    ? "Aún no has añadido ninguna moneda."
+    : `${lista.length} de ${monedas.length} moneda${monedas.length === 1 ? "" : "s"}`;
+
+  if(lista.length === 0){
+    contenedor.innerHTML = monedas.length === 0
+      ? `<div class="empty"><strong>Tu inventario está vacío</strong>Pulsa "Añadir moneda" o importa tu archivo CSV para empezar.</div>`
+      : `<div class="empty"><strong>Sin resultados</strong>Prueba con otro país, año u observación.</div>`;
+    return;
+  }
+
+  contenedor.innerHTML = `<div class="grid">${lista.map(tarjeta).join("")}</div>`;
+
+  contenedor.querySelectorAll("[data-editar]").forEach(btn=>{
+    btn.addEventListener("click", () => abrirEdicion(btn.dataset.editar));
+  });
+  contenedor.querySelectorAll("[data-borrar]").forEach(btn=>{
+    btn.addEventListener("click", () => borrar(btn.dataset.borrar));
+  });
+}
+
+function tarjeta(m){
+  const img = m.imagen
+    ? `<img src="${escapeAttr(m.imagen)}" alt="Moneda de ${escapeAttr(m.pais)} de ${m.anio}" loading="lazy" onerror="this.parentElement.innerHTML='<span class=placeholder>2&euro;</span>'">`
+    : `<span class="placeholder">2&euro;</span>`;
+  return `
+  <article class="card">
+    <div class="thumb">${img}</div>
+    <div class="body">
+      <div class="country">${escapeHtml(m.pais)}</div>
+      <div class="year">${m.anio}${m.fecha ? ` · ${escapeHtml(m.fecha)}` : ""}</div>
+      ${m.motivo ? `<div class="notes"><strong>${escapeHtml(m.motivo)}</strong></div>` : ""}
+      ${m.tirada ? `<div class="notes">Tirada: ${escapeHtml(m.tirada)}</div>` : ""}
+      ${m.descripcion ? `<div class="notes">${escapeHtml(m.descripcion)}</div>` : ""}
+      ${m.notas ? `<div class="notes">${escapeHtml(m.notas)}</div>` : ""}
+      <div class="actions">
+        <button class="secondary" data-editar="${m.id}">Editar</button>
+        <button class="secondary" data-borrar="${m.id}">Eliminar</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+document.getElementById("btnNueva").addEventListener("click", () => abrirNueva());
+document.getElementById("btnCancelar").addEventListener("click", () => dialogo.close());
+buscar.addEventListener("input", render);
+orden.addEventListener("change", render);
+
+function abrirNueva(){
+  editandoId = null;
+  document.getElementById("dlgTitulo").textContent = "Añadir moneda";
+  form.reset();
+  dialogo.showModal();
+}
+function abrirEdicion(id){
+  const m = monedas.find(x => x.id === id);
+  if(!m) return;
+  editandoId = id;
+  document.getElementById("dlgTitulo").textContent = "Editar moneda";
+  document.getElementById("campoPais").value = m.pais;
+  document.getElementById("campoAnio").value = m.anio;
+  document.getElementById("campoImagen").value = m.imagen || "";
+  document.getElementById("campoMotivo").value = m.motivo || "";
+  document.getElementById("campoFecha").value = m.fecha || "";
+  document.getElementById("campoTirada").value = m.tirada || "";
+  document.getElementById("campoDescripcion").value = m.descripcion || "";
+  document.getElementById("campoNotas").value = m.notas || "";
+  dialogo.showModal();
+}
+function borrar(id){
+  if(!confirm("¿Eliminar esta moneda del inventario?")) return;
+  monedas = monedas.filter(x => x.id !== id);
+  guardar(); render();
+}
+
+form.addEventListener("submit", () => {
+  const datos = {
+    pais: document.getElementById("campoPais").value.trim(),
+    anio: Number(document.getElementById("campoAnio").value),
+    imagen: document.getElementById("campoImagen").value.trim(),
+    motivo: document.getElementById("campoMotivo").value.trim(),
+    fecha: document.getElementById("campoFecha").value.trim(),
+    tirada: document.getElementById("campoTirada").value.trim(),
+    descripcion: document.getElementById("campoDescripcion").value.trim(),
+    notas: document.getElementById("campoNotas").value.trim()
+  };
+  if(editandoId){
+    const i = monedas.findIndex(x => x.id === editandoId);
+    monedas[i] = { ...monedas[i], ...datos };
+  } else {
+    monedas.push({ id: uid(), ...datos });
+  }
+  guardar(); render();
+});
+
+document.getElementById("btnExportar").addEventListener("click", () => {
+  const cabecera = "pais,anio,motivo,imagen,descripcion,fecha_emision,tirada,observaciones";
+  const filas = monedas.map(m => [
+      m.pais, m.anio, m.motivo || "", m.imagen || "",
+      (m.descripcion || "").replace(/\n/g," "), m.fecha || "", m.tirada || "",
+      (m.notas || "").replace(/\n/g," ")
+    ].map(campo => `"${String(campo).replace(/"/g,'""')}"`).join(","));
+  const csv = [cabecera, ...filas].join("\r\n");
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "inventario-monedas.csv";
+  a.click();
+});
+
+document.getElementById("btnImportar").addEventListener("click", () => {
+  document.getElementById("inputArchivo").click();
+});
+document.getElementById("inputArchivo").addEventListener("change", (e) => {
+  const archivo = e.target.files[0];
+  if(!archivo) return;
+  const lector = new FileReader();
+  lector.onload = () => {
+    const nuevas = parsearCSV(lector.result);
+    if(nuevas.length){
+      monedas = monedas.concat(nuevas);
+      guardar(); render();
+      alert(`Se importaron ${nuevas.length} monedas.`);
+    } else {
+      alert("No se encontraron filas válidas. Revisa que el CSV tenga columnas pais, anio, imagen, notas.");
+    }
+  };
+  lector.readAsText(archivo, "utf-8");
+  e.target.value = "";
+});
+
+function parsearCSV(texto){
+  const lineas = texto.replace(/^\ufeff/,"").split(/\r?\n/).filter(l => l.trim() !== "");
+  if(lineas.length < 2) return [];
+  const cabecera = dividirLineaCSV(lineas[0]).map(c => c.trim().toLowerCase());
+  const idxPais = cabecera.indexOf("pais") !== -1 ? cabecera.indexOf("pais") : cabecera.indexOf("país");
+  const idxAnio = cabecera.indexOf("anio") !== -1 ? cabecera.indexOf("anio") : cabecera.indexOf("año");
+  const idxImagen = cabecera.indexOf("imagen");
+  const idxNotas = cabecera.indexOf("notas") !== -1 ? cabecera.indexOf("notas") : cabecera.indexOf("observaciones");
+  const idxFecha = cabecera.indexOf("fecha_emision") !== -1 ? cabecera.indexOf("fecha_emision") : cabecera.indexOf("fecha de emisión");
+  const idxTirada = cabecera.indexOf("tirada");
+  const idxDescripcion = cabecera.indexOf("descripcion") !== -1 ? cabecera.indexOf("descripcion") : cabecera.indexOf("descripción de la moneda") !== -1 ? cabecera.indexOf("descripción de la moneda") : cabecera.indexOf("descripción");
+  const idxMotivo = cabecera.indexOf("motivo");
+
+  const resultado = [];
+  for(let i=1; i<lineas.length; i++){
+    const campos = dividirLineaCSV(lineas[i]);
+    const pais = idxPais !== -1 ? campos[idxPais] : "";
+    const anio = idxAnio !== -1 ? parseInt(campos[idxAnio], 10) : NaN;
+    if(!pais || !anio) continue;
+    resultado.push({
+      id: uid(),
+      pais: pais.trim(),
+      anio: anio,
+      imagen: idxImagen !== -1 ? (campos[idxImagen] || "").trim() : "",
+      motivo: idxMotivo !== -1 ? (campos[idxMotivo] || "").trim() : "",
+      fecha: idxFecha !== -1 ? (campos[idxFecha] || "").trim() : "",
+      tirada: idxTirada !== -1 ? (campos[idxTirada] || "").trim() : "",
+      descripcion: idxDescripcion !== -1 ? (campos[idxDescripcion] || "").trim() : "",
+      notas: idxNotas !== -1 ? (campos[idxNotas] || "").trim() : ""
+    });
+  }
+  return resultado;
+}
+
+function dividirLineaCSV(linea){
+  const campos = [];
+  let actual = "", dentroComillas = false;
+  for(let i=0; i<linea.length; i++){
+    const c = linea[i];
+    if(c === '"'){
+      if(dentroComillas && linea[i+1] === '"'){ actual += '"'; i++; }
+      else dentroComillas = !dentroComillas;
+    } else if(c === "," && !dentroComillas){
+      campos.push(actual); actual = "";
+    } else {
+      actual += c;
+    }
+  }
+  campos.push(actual);
+  return campos;
+}
+
+render();
+</script>
+</body>
+</html>
