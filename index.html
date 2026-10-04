@@ -281,7 +281,7 @@ form.addEventListener("submit", () => {
 });
 
 document.getElementById("btnExportar").addEventListener("click", () => {
-  const cabecera = "pais,anio,motivo,imagen,descripcion,fecha_emision,tirada,observaciones";
+  const cabecera = "pais,anio,motivo,imagen,descripcion-moneda,fecha-emision,volumen,observaciones";
   const filas = monedas.map(m => [
       m.pais, m.anio, m.motivo || "", m.imagen || "",
       (m.descripcion || "").replace(/\n/g," "), m.fecha || "", m.tirada || "",
@@ -324,9 +324,13 @@ function parsearCSV(texto){
   const idxAnio = cabecera.indexOf("anio") !== -1 ? cabecera.indexOf("anio") : cabecera.indexOf("año");
   const idxImagen = cabecera.indexOf("imagen");
   const idxNotas = cabecera.indexOf("notas") !== -1 ? cabecera.indexOf("notas") : cabecera.indexOf("observaciones");
-  const idxFecha = cabecera.indexOf("fecha_emision") !== -1 ? cabecera.indexOf("fecha_emision") : cabecera.indexOf("fecha de emisión");
-  const idxTirada = cabecera.indexOf("tirada");
-  const idxDescripcion = cabecera.indexOf("descripcion") !== -1 ? cabecera.indexOf("descripcion") : cabecera.indexOf("descripción de la moneda") !== -1 ? cabecera.indexOf("descripción de la moneda") : cabecera.indexOf("descripción");
+  const buscarCol = (...nombres) => {
+    for(const n of nombres){ const i = cabecera.indexOf(n); if(i !== -1) return i; }
+    return -1;
+  };
+  const idxFecha = buscarCol("fecha_emision", "fecha-emision", "fecha de emisión");
+  const idxTirada = buscarCol("tirada", "volumen", "volumen (tirada)");
+  const idxDescripcion = buscarCol("descripcion", "descripcion-moneda", "descripción de la moneda", "descripción");
   const idxMotivo = cabecera.indexOf("motivo");
 
   const resultado = [];
