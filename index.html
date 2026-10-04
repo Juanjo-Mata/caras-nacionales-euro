@@ -303,7 +303,13 @@ document.getElementById("inputArchivo").addEventListener("change", (e) => {
   if(!archivo) return;
   const lector = new FileReader();
   lector.onload = () => {
-    const nuevas = parsearCSV(lector.result);
+    const buffer = lector.result;
+    let texto = new TextDecoder("utf-8").decode(buffer);
+    if(texto.includes("\ufffd")){
+      // La codificación UTF-8 no cuadra (aparecen caracteres rotos): probamos Windows-1252, típico de Excel en español.
+      texto = new TextDecoder("windows-1252").decode(buffer);
+    }
+    const nuevas = parsearCSV(texto);
     if(nuevas.length){
       monedas = monedas.concat(nuevas);
       guardar(); render();
@@ -312,7 +318,7 @@ document.getElementById("inputArchivo").addEventListener("change", (e) => {
       alert("No se encontraron filas válidas. Revisa que el archivo tenga, al menos, columnas llamadas pais y anio en la primera fila.");
     }
   };
-  lector.readAsText(archivo, "utf-8");
+  lector.readAsArrayBuffer(archivo);
   e.target.value = "";
 });
 
