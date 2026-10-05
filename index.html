@@ -247,7 +247,8 @@ const BANDERAS = {
   "finlandia":{special:"nordic",bg:"#ffffff",cross:"#003580"},
   "grecia":{special:"grecia",c:["#0d5eaf","#ffffff"]},
   "eslovenia":{dir:"h",c:["#ffffff","#005ce6","#ed1c24"]},
-  "chipre":{dir:"h",c:["#f5f5f0","#f5f5f0"]},
+  "chipre":{special:"chipre"},
+  "bulgaria":{dir:"h",c:["#ffffff","#00966e","#d62612"]},
   "malta":{dir:"v",c:["#ffffff","#ce1126"]},
   "eslovaquia":{dir:"h",c:["#ffffff","#0b4ea2","#ee1c25"]},
   "estonia":{dir:"h",c:["#0072ce","#000000","#ffffff"]},
@@ -256,6 +257,7 @@ const BANDERAS = {
   "monaco":{dir:"h",c:["#ce1126","#ffffff"]},
   "san marino":{dir:"h",c:["#ffffff","#5eb6e4"]},
   "vaticano":{dir:"v",c:["#ffe000","#ffffff"]},
+  "ciudad del vaticano":{dir:"v",c:["#ffe000","#ffffff"]},
   "andorra":{dir:"v",c:["#0018a8","#fedd00","#d50032"]},
   "croacia":{dir:"h",c:["#ff0000","#ffffff","#171796"]}
 };
@@ -266,6 +268,8 @@ function svgBandera(pais){
   if(!def) return `<svg viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#d7d7d7"/></svg>`;
   if(def.special === "nordic")
     return `<svg viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="${def.bg}"/><rect x="8" width="3" height="16" fill="${def.cross}"/><rect y="6.5" width="24" height="3" fill="${def.cross}"/></svg>`;
+  if(def.special === "chipre")
+    return `<svg viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#ffffff"/><ellipse cx="12" cy="8.5" rx="6.5" ry="3.2" fill="#d7a328"/><path d="M8,11.5 q2,2 4,0" stroke="#4e8b3b" stroke-width="1" fill="none"/><path d="M12,11.5 q2,2 4,0" stroke="#4e8b3b" stroke-width="1" fill="none"/></svg>`;
   if(def.special === "grecia"){
     let franjas = "";
     for(let i=0;i<9;i++) franjas += `<rect y="${i*(16/9)}" width="24" height="${16/9}" fill="${i%2===0?def.c[0]:def.c[1]}"/>`;
