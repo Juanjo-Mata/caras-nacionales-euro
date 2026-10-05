@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Catálogo de monedas de Euro</title>
+<title>Todas las monedas de 2 Euro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -41,6 +41,14 @@ button.secondary{background:var(--panel);color:var(--ink);border-color:var(--lin
 button.secondary:hover{background:var(--bg)}
 .count{color:var(--mute);font-size:.85rem;margin:0 0 .8rem}
 
+.paises-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.9rem}
+.pais-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.1rem 1rem;display:flex;flex-direction:column;align-items:center;gap:.6rem;cursor:pointer;text-align:center;font:inherit;color:inherit}
+.pais-card:hover{border-color:var(--gold);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.pais-card .bandera-grande{display:inline-flex;width:3.4rem;height:2.3rem;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.pais-card .bandera-grande svg{width:100%;height:100%;display:block}
+.pais-card .nombre{font-family:'Fraunces',serif;font-size:1rem}
+.pais-card .cantidad{font-size:.78rem;color:var(--mute)}
+.btn-volver{display:block;margin:2rem auto 0}
 .pais-grupo{margin-bottom:2.2rem}
 .pais-titulo{display:flex;align-items:center;gap:.5rem;font-size:1.2rem;margin:0 0 .8rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)}
 .pais-titulo .bandera{display:inline-flex;width:1.7rem;height:1.15rem;border-radius:2px;overflow:hidden;border:1px solid var(--line);box-shadow:0 0 0 1px rgba(0,0,0,.03)}
@@ -99,8 +107,8 @@ dialog::backdrop{background:rgba(30,26,20,.45)}
 </g>
 </svg>
 <div>
-<h1>Catálogo de monedas de Euro</h1>
-<p>Todas las monedas de 2 €, nacionales y conmemorativas.</p>
+<h1>Todas las monedas de 2 Euro</h1>
+<p>Todas las monedas de 2€ nacionales y conmemorativas.</p>
 </div>
 </div>
 </div>
@@ -108,16 +116,12 @@ dialog::backdrop{background:rgba(30,26,20,.45)}
 <main>
 <div class="toolbar">
   <div class="field">
-    <label for="buscar">Buscar</label>
-    <input id="buscar" type="text" placeholder="País, año, observaciones...">
-  </div>
-  <div class="field">
-    <label for="orden">Dentro de cada país</label>
-    <select id="orden">
-      <option value="anio-desc">Año (más reciente)</option>
-      <option value="anio-asc">Año (más antiguo)</option>
+    <label for="filtroAnio">Año</label>
+    <select id="filtroAnio">
+      <option value="">Todos los años</option>
     </select>
   </div>
+
   <div class="spacer"></div>
   <span id="accionesEdicion" style="display:none;gap:.7rem">
     <button class="secondary" id="btnImportar">Importar CSV</button>
@@ -215,10 +219,17 @@ function uid(){ return Date.now().toString(36) + Math.random().toString(36).slic
 
 const contenedor = document.getElementById("contenedor");
 const contador = document.getElementById("contador");
-const buscar = document.getElementById("buscar");
-const orden = document.getElementById("orden");
+const filtroAnio = document.getElementById("filtroAnio");
 const dialogo = document.getElementById("dialogo");
 const form = document.getElementById("formMoneda");
+let paisActivo = null;
+
+function actualizarFiltroAnio(){
+  const anios = [...new Set(monedas.map(m => m.anio))].sort((a,b) => b - a);
+  const actual = filtroAnio.value;
+  filtroAnio.innerHTML = '<option value="">Todos los años</option>' + anios.map(a => `<option value="${a}">${a}</option>`).join("");
+  if(anios.includes(Number(actual))) filtroAnio.value = actual;
+}
 
 // Definición simplificada de banderas: franjas de color, horizontales (h) o verticales (v).
 const BANDERAS = {
@@ -274,26 +285,15 @@ function svgBandera(pais){
 }
 
 function render(){
-  const texto = buscar.value.trim().toLowerCase();
-  let lista = monedas.filter(m =>
-    !texto ||
-    m.pais.toLowerCase().includes(texto) ||
-    String(m.anio).includes(texto) ||
-    (m.notas || "").toLowerCase().includes(texto)
-  );
+  const anioFiltro = filtroAnio.value;
+  const lista = monedas.filter(m => !anioFiltro || String(m.anio) === anioFiltro);
 
-  contador.textContent = monedas.length === 0
-    ? "Aún no has añadido ninguna moneda."
-    : `${lista.length} de ${monedas.length} moneda${monedas.length === 1 ? "" : "s"}`;
-
-  if(lista.length === 0){
-    contenedor.innerHTML = monedas.length === 0
-      ? `<div class="empty"><strong>Tu inventario está vacío</strong>Pulsa "Añadir moneda" o importa tu archivo CSV para empezar.</div>`
-      : `<div class="empty"><strong>Sin resultados</strong>Prueba con otro país, año u observación.</div>`;
+  if(monedas.length === 0){
+    contador.textContent = "Aún no has añadido ninguna moneda.";
+    contenedor.innerHTML = `<div class="empty"><strong>Tu catálogo está vacío</strong>Activa el modo edición para importar tu archivo CSV o añadir monedas.</div>`;
     return;
   }
 
-  const criterio = orden.value;
   const grupos = new Map();
   lista.forEach(m => {
     if(!grupos.has(m.pais)) grupos.set(m.pais, []);
@@ -301,20 +301,46 @@ function render(){
   });
   const paises = [...grupos.keys()].sort((a,b) => a.localeCompare(b, "es"));
 
-  contenedor.innerHTML = paises.map(pais => {
-    const monedasPais = grupos.get(pais).sort((a,b) => criterio === "anio-asc" ? a.anio - b.anio : b.anio - a.anio);
-    return `
-    <section class="pais-grupo">
-      <h2 class="pais-titulo"><span class="bandera">${svgBandera(pais)}</span> ${escapeHtml(pais)} <span class="pais-count">${monedasPais.length}</span></h2>
-      <div class="grid">${monedasPais.map(tarjeta).join("")}</div>
-    </section>`;
-  }).join("");
+  // Pantalla de detalle de un país concreto
+  if(paisActivo){
+    if(!paises.includes(paisActivo)){
+      contador.textContent = `0 monedas de ${paisActivo} para el año seleccionado.`;
+      contenedor.innerHTML = `<div class="empty"><strong>Sin monedas para este filtro</strong>Prueba a elegir "Todos los años".</div>
+        <button class="secondary btn-volver" id="btnVolver">← Volver a todos los países</button>`;
+    } else {
+      const monedasPais = grupos.get(paisActivo).sort((a,b) => b.anio - a.anio);
+      contador.textContent = `${monedasPais.length} moneda${monedasPais.length === 1 ? "" : "s"} de ${paisActivo}`;
+      contenedor.innerHTML = `
+        <section class="pais-grupo">
+          <h2 class="pais-titulo"><span class="bandera">${svgBandera(paisActivo)}</span> ${escapeHtml(paisActivo)} <span class="pais-count">${monedasPais.length}</span></h2>
+          <div class="grid">${monedasPais.map(tarjeta).join("")}</div>
+        </section>
+        <button class="secondary btn-volver" id="btnVolver">← Volver a todos los países</button>`;
+      contenedor.querySelectorAll("[data-editar]").forEach(btn=>{
+        btn.addEventListener("click", () => abrirEdicion(btn.dataset.editar));
+      });
+      contenedor.querySelectorAll("[data-borrar]").forEach(btn=>{
+        btn.addEventListener("click", () => borrar(btn.dataset.borrar));
+      });
+    }
+    document.getElementById("btnVolver").addEventListener("click", () => { paisActivo = null; render(); });
+    return;
+  }
 
-  contenedor.querySelectorAll("[data-editar]").forEach(btn=>{
-    btn.addEventListener("click", () => abrirEdicion(btn.dataset.editar));
-  });
-  contenedor.querySelectorAll("[data-borrar]").forEach(btn=>{
-    btn.addEventListener("click", () => borrar(btn.dataset.borrar));
+  // Pantalla principal: solo banderas de los países
+  contador.textContent = `${paises.length} país${paises.length === 1 ? "" : "es"} · ${lista.length} moneda${lista.length === 1 ? "" : "s"}`;
+  if(paises.length === 0){
+    contenedor.innerHTML = `<div class="empty"><strong>Sin resultados</strong>No hay monedas para el año seleccionado.</div>`;
+    return;
+  }
+  contenedor.innerHTML = `<div class="paises-grid">${paises.map(pais => `
+    <button type="button" class="pais-card" data-pais="${escapeAttr(pais)}">
+      <span class="bandera-grande">${svgBandera(pais)}</span>
+      <span class="nombre">${escapeHtml(pais)}</span>
+      <span class="cantidad">${grupos.get(pais).length} moneda${grupos.get(pais).length === 1 ? "" : "s"}</span>
+    </button>`).join("")}</div>`;
+  contenedor.querySelectorAll("[data-pais]").forEach(btn=>{
+    btn.addEventListener("click", () => { paisActivo = btn.dataset.pais; render(); });
   });
 }
 
@@ -347,8 +373,7 @@ function escapeAttr(s){ return escapeHtml(s); }
 
 document.getElementById("btnNueva").addEventListener("click", () => abrirNueva());
 document.getElementById("btnCancelar").addEventListener("click", () => dialogo.close());
-buscar.addEventListener("input", render);
-orden.addEventListener("change", render);
+filtroAnio.addEventListener("change", render);
 
 function abrirNueva(){
   editandoId = null;
@@ -374,7 +399,7 @@ function abrirEdicion(id){
 function borrar(id){
   if(!confirm("¿Eliminar esta moneda del inventario?")) return;
   monedas = monedas.filter(x => x.id !== id);
-  guardar(); render();
+  guardar(); actualizarFiltroAnio(); render();
 }
 
 form.addEventListener("submit", () => {
@@ -394,7 +419,7 @@ form.addEventListener("submit", () => {
   } else {
     monedas.push({ id: uid(), ...datos });
   }
-  guardar(); render();
+  guardar(); actualizarFiltroAnio(); render();
 });
 
 document.getElementById("btnExportar").addEventListener("click", () => {
@@ -429,7 +454,7 @@ document.getElementById("inputArchivo").addEventListener("change", (e) => {
     const nuevas = parsearCSV(texto);
     if(nuevas.length){
       monedas = monedas.concat(nuevas);
-      guardar(); render();
+      guardar(); actualizarFiltroAnio(); render();
       alert(`Se importaron ${nuevas.length} monedas.`);
     } else {
       alert("No se encontraron filas válidas. Revisa que el archivo tenga, al menos, columnas llamadas pais y anio en la primera fila.");
@@ -498,9 +523,10 @@ function dividirLineaCSV(linea, separador){
   return campos;
 }
 
+actualizarFiltroAnio();
 render();
 
-// Al abrir la página, intenta cargar inventario-monedas.csv desde el propio repositorio,
+// Al abrir la página, intenta cargar caras-nacionales-euro.csv desde el propio repositorio,
 // para que los datos se vean igual desde cualquier dispositivo, no solo desde este navegador.
 fetch("caras-nacionales-euro.csv")
   .then(r => r.ok ? r.arrayBuffer() : null)
@@ -512,6 +538,7 @@ fetch("caras-nacionales-euro.csv")
     if(delRepo.length){
       monedas = delRepo;
       guardar();
+      actualizarFiltroAnio();
       render();
     }
   })
