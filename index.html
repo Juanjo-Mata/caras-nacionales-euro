@@ -433,7 +433,7 @@ document.getElementById("btnExportar").addEventListener("click", () => {
   const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "caras-nacionales-euro.csv";
+  a.download = "monedas-2-euro-completo.csv";
   a.click();
 });
 
@@ -526,9 +526,9 @@ function dividirLineaCSV(linea, separador){
 actualizarFiltroAnio();
 render();
 
-// Al abrir la página, intenta cargar caras-nacionales-euro.csv desde el propio repositorio,
+// Al abrir la página, intenta cargar monedas-2-euro-completo.csv desde el propio repositorio,
 // para que los datos se vean igual desde cualquier dispositivo, no solo desde este navegador.
-fetch("caras-nacionales-euro.csv")
+fetch("monedas-2-euro-completo.csv")
   .then(r => r.ok ? r.arrayBuffer() : null)
   .then(buffer => {
     if(!buffer) return;
