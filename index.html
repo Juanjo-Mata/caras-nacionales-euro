@@ -27,8 +27,8 @@ h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0}
 .hero-texto{flex:1;min-width:0}
 .hero h1{font-size:1.85rem;letter-spacing:.01em;color:#fff}
 .hero p{color:#c7cfe6;margin:.45rem 0 0;max-width:40rem;font-size:.97rem}
-.hero .mapa-eu{flex:none;width:3.6rem;height:3.6rem;opacity:.9}
-@media (max-width:34rem){.hero .mapa-eu{display:none}}
+.hero .mapa-eu{flex:none;width:3.6rem;height:3.6rem;opacity:.95}
+@media (max-width:34rem){.hero .mapa-eu{width:2.2rem;height:2.2rem}}
 @media (max-width:30rem){.hero-inner{gap:1rem}.hero .stars{width:3rem;height:3rem}.hero h1{font-size:1.5rem}}
 main{max-width:64rem;margin:0 auto;padding:0 1.5rem 4rem}
 
@@ -563,18 +563,24 @@ function parsearCSV(texto){
   const primeraLinea = lineas[0];
   const separador = (primeraLinea.match(/;/g) || []).length > (primeraLinea.match(/,/g) || []).length ? ";" : ",";
   const cabecera = dividirLineaCSV(lineas[0], separador).map(c => c.trim().toLowerCase());
-  const idxPais = cabecera.indexOf("pais") !== -1 ? cabecera.indexOf("pais") : cabecera.indexOf("país");
-  const idxAnio = cabecera.indexOf("anio") !== -1 ? cabecera.indexOf("anio") : cabecera.indexOf("año");
-  const idxImagen = cabecera.indexOf("imagen");
-  const idxNotas = cabecera.indexOf("notas") !== -1 ? cabecera.indexOf("notas") : cabecera.indexOf("observaciones");
-  const buscarCol = (...nombres) => {
-    for(const n of nombres){ const i = cabecera.indexOf(n); if(i !== -1) return i; }
+  // Busca la primera cabecera cuyo texto (sin tildes) CONTENGA alguna de las palabras clave dadas,
+  // así da igual que haya guiones, espacios de más, erratas o acentos distintos.
+  const cabeceraNormalizada = cabecera.map(normaliza);
+  const buscarCol = (...claves) => {
+    for(const clave of claves){
+      const i = cabeceraNormalizada.findIndex(c => c.includes(clave));
+      if(i !== -1) return i;
+    }
     return -1;
   };
-  const idxFecha = buscarCol("fecha_emision", "fecha-emision", "fecha de emisión");
-  const idxTirada = buscarCol("tirada", "volumen", "volumen (tirada)");
-  const idxDescripcion = buscarCol("descripcion", "descripcion-moneda", "descripción de la moneda", "descripción");
-  const idxMotivo = cabecera.indexOf("motivo");
+  const idxPais = buscarCol("pais");
+  const idxAnio = buscarCol("anio", "ano");
+  const idxImagen = buscarCol("imagen");
+  const idxMotivo = buscarCol("motivo");
+  const idxFecha = buscarCol("fecha");
+  const idxTirada = buscarCol("tirada", "volumen");
+  const idxDescripcion = buscarCol("descripcion", "descrpcion");
+  const idxNotas = buscarCol("observacion", "notas");
 
   const resultado = [];
   for(let i=1; i<lineas.length; i++){
